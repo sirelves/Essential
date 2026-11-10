@@ -66,7 +66,7 @@
 		"php": ">=8.1",
 		"adhocore/json-comment": "^1.2.1",
 		"brick/math": "^0.13.1",
-		"netresearch/jsonmapper": "^5.0",
+		"netresearch/jsonmapper": "^6.0",
 		"pocketmine/bedrock-block-upgrade-schema": "^5.2.0",
 		"pocketmine/bedrock-item-upgrade-schema": "^1.16.0",
 		"pocketmine/binaryutils": "^0.2.6",
