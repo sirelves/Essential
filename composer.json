@@ -92,7 +92,8 @@
 
 	"autoload": {
 		"psr-4": {
-			"pocketmine\\": "src/"
+			"pocketmine\\": "src/",
+			"pocketmine\\nethernet\\": "lib/axolotl-nethernet/src/"
 		},
 		"files": [
 			"src/CoreConstants.php"
