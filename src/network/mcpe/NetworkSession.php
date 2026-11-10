@@ -104,6 +104,8 @@ use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\UpdateAdventureSettingsPacket;
 use pocketmine\network\NetworkSessionManager;
 use pocketmine\network\PacketHandlingException;
+use pocketmine\network\TransportIdentityException;
+use pocketmine\network\TransportIdentityKey;
 use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\GameMode;
@@ -234,7 +236,9 @@ class NetworkSession{
 		private Compressor $compressor,
 		private TypeConverter $typeConverter,
 		private string $ip,
-		private int $port
+		private int $port,
+		private ?TransportIdentityKey $transportIdentityKey = null,
+		private bool $transportEncrypted = false
 	){
 		$this->logger = new \PrefixedLogger($this->server->getLogger(), $this->getLogPrefix());
 
@@ -1001,6 +1005,14 @@ class NetworkSession{
 				$error = "Expected XUID but none found";
 			}elseif($clientPubKey === null){
 				$error = "Missing client public key"; //failsafe
+			}elseif($authenticated && $this->transportIdentityKey !== null){
+				//Authenticated logins must come from the key the transport proved (NetherNet a=identity/DTLS),
+				//otherwise a Login captured elsewhere could be replayed on a transport without Minecraft encryption.
+				try{
+					$this->transportIdentityKey->verify($clientPubKey);
+				}catch(TransportIdentityException $e){
+					$error = $e->getMessage();
+				}
 			}
 		}
 
@@ -1074,7 +1086,9 @@ class NetworkSession{
 			}
 		}
 
-		if(EncryptionContext::$ENABLED && $this->ip !== '127.0.0.1'){
+		//Skip the Minecraft handshake when the transport already encrypts and proved the client identity (NetherNet),
+		//or for sessions relayed by a local NetherNet bridge (127.0.0.1).
+		if(EncryptionContext::$ENABLED && $this->ip !== '127.0.0.1' && !($this->transportEncrypted && $this->transportIdentityKey !== null)){
 			$this->server->getAsyncPool()->submitTask(new PrepareEncryptionTask($clientPubKey, function(string $encryptionKey, string $handshakeJwt) : void{
 				if(!$this->connected){
 					return;
