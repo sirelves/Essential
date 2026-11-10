@@ -166,6 +166,7 @@ function main() : void{
 				$pharPath,
 				dirname(__DIR__) . DIRECTORY_SEPARATOR,
 				[
+					'lib',
 					'resources',
 					'src',
 					'vendor'
