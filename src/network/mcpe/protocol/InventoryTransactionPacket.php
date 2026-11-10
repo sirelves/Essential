@@ -80,11 +80,12 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 			}
 		}
 
-		if($is2630){
+		$dummy = $is2630 && $in->getProtocolId() < \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62;
+		if($dummy){
 			$in->readDummyOptional();
 		}
 		$transactionType = $in->getUnsignedVarInt();
-		if($is2630){
+		if($dummy){
 			$in->readDummyOptional();
 		}
 
@@ -121,7 +122,7 @@ class InventoryTransactionPacket extends DataPacket implements ClientboundPacket
 			}
 		}
 
-		if($is2630){
+		if($is2630 && $out->getProtocolId() < \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
 			$out->writeDummyOptional();
 			$out->putUnsignedVarInt($this->trData->getTypeId());
 			$out->writeDummyOptional();

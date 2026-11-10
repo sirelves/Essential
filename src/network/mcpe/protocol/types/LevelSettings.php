@@ -229,6 +229,9 @@ final class LevelSettings{
 			$out->putBool($this->createdInEditorMode);
 			$out->putBool($this->exportedFromEditorMode);
 		}
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$out->putByte(0); //EditorLevelMigrationVersion added in 1.26.60 (proto 2225)
+		}
 		$out->putVarInt($this->time);
 		$out->putVarInt($this->eduEditionOffer);
 		$out->putBool($this->hasEduFeaturesEnabled);

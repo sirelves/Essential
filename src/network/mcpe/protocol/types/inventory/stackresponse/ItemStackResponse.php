@@ -62,7 +62,7 @@ final class ItemStackResponse{
 		$requestId = $in->readItemStackRequestId();
 		$containerInfos = [];
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-			if($in->getBool() && $in->getBool()){
+			if($in->getBool() && ($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool())){
 				for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
 					$containerInfos[] = ItemStackResponseContainerInfo::read($in);
 				}
@@ -82,7 +82,9 @@ final class ItemStackResponse{
 			$hasContainers = count($this->containerInfos) !== 0;
 			$out->putBool($hasContainers);
 			if($hasContainers){
-				$out->putBool(true);
+				if($out->getProtocolId() < ProtocolInfo::PROTOCOL_1_26_62){
+					$out->putBool(true);
+				}
 				$out->putUnsignedVarInt(count($this->containerInfos));
 				foreach($this->containerInfos as $containerInfo){
 					$containerInfo->write($out);

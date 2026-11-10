@@ -150,6 +150,9 @@ class PlayerListPacket extends DataPacket implements ClientboundPacket{
 					$out->putActorUniqueId($entry->actorUniqueId);
 					$out->putString($entry->username);
 					$out->putString($entry->xboxUserId);
+					if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+						$out->putString($entry->skinData->getPlayFabId());
+					}
 					$out->putString($entry->platformChatId);
 					$out->putLInt($entry->buildPlatform);
 					$out->putSkin($entry->skinData);

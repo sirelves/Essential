@@ -160,6 +160,9 @@ class AddActorPacket extends DataPacket implements ClientboundPacket{
 		foreach($this->links as $link){
 			$out->putEntityLink($link);
 		}
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$out->putBool(false); //PassengerOfBlock (1.26.60+)
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

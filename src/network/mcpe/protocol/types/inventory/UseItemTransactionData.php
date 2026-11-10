@@ -48,6 +48,7 @@ class UseItemTransactionData extends TransactionData{
 	private BlockPosition $blockPosition;
 	private int $face;
 	private int $hotbarSlot;
+	private int $hand = 0;
 	private ItemStackWrapper $itemInHand;
 	private Vector3 $playerPosition;
 	private Vector3 $clickPosition;
@@ -102,6 +103,9 @@ class UseItemTransactionData extends TransactionData{
 		$this->blockPosition = $stream->getBlockPosition($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_10);
 		$this->face = $is2630 ? $stream->getByte() : $stream->getVarInt();
 		$this->hotbarSlot = $stream->getVarInt();
+		if($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$this->hand = $stream->getByte();
+		}
 		$this->itemInHand = $is2630
 			? $stream->getNetworkItemStackDescriptor(decodeExtraData: false)
 			: ItemStackWrapper::read($stream, decodeExtraData: false);
@@ -137,6 +141,9 @@ class UseItemTransactionData extends TransactionData{
 			$stream->putVarInt($this->face);
 		}
 		$stream->putVarInt($this->hotbarSlot);
+		if($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$stream->putByte($this->hand);
+		}
 		if($is2630){
 			$stream->putNetworkItemStackDescriptor($this->itemInHand);
 		}else{

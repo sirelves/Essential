@@ -191,6 +191,9 @@ class LevelChunkPacket extends DataPacket implements ClientboundPacket{
 			}
 		}
 		$out->putString($this->extraPayload);
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$out->putBool(false); //ClientBiomeUpdate added in 1.26.60 (proto 2225)
+		}
 	}
 
 	public function handle(PacketHandlerInterface $handler) : bool{

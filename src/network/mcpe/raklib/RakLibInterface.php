@@ -226,7 +226,7 @@ class RakLibInterface implements ServerEventListener, AdvancedNetworkInterface{
 				//intentionally doesn't use logException, we don't want spammy packet error traces to appear in release mode
 				$logger->debug(implode("\n", Utils::printableExceptionInfo($e)));
 
-				$this->interface->blockAddress($address, 5);
+				if($address !== '127.0.0.1'){ $this->interface->blockAddress($address, 5); }
 			}catch(\Throwable $e){
 				$this->server->getLogger()->emergency("Crash occurred while handling a packet from session: $name");
 				$this->server->getLogger()->emergency(get_class($e));

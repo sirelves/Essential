@@ -298,6 +298,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	protected string $locale = "en_US";
 
 	protected int $startAction = -1;
+	private int $lastArmSwingTick = -1;
 
 	/**
 	 * @phpstan-var array<int|string, int>
@@ -1865,7 +1866,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		if($ev->isCancelled()){
 			return false;
 		}
-		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+		$this->swingArm();
 		if($target->onAttack($this->inventory->getItemInHand(), $face, $this)){
 			return true;
 		}
@@ -1905,7 +1906,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		$this->removeCurrentWindow();
 
 		if($this->canInteract($pos->add(0.5, 0.5, 0.5), $this->isCreative() ? self::MAX_REACH_DISTANCE_CREATIVE : self::MAX_REACH_DISTANCE_SURVIVAL)){
-			$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+			$this->swingArm();
 			$this->stopBreakBlock($pos);
 			$item = $this->inventory->getItemInHand();
 			$oldItem = clone $item;
@@ -1931,7 +1932,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		$this->setUsingItem(false);
 
 		if($this->canInteract($pos->add(0.5, 0.5, 0.5), $this->isCreative() ? self::MAX_REACH_DISTANCE_CREATIVE : self::MAX_REACH_DISTANCE_SURVIVAL)){
-			$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+			$this->swingArm();
 			$item = $this->inventory->getItemInHand(); //this is a copy of the real item
 			$oldItem = clone $item;
 			$returnedItems = [];
@@ -2002,7 +2003,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		}
 
 		$entity->attack($ev);
-		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+		$this->swingArm();
 
 		$soundPos = $entity->getPosition()->add(0, $entity->size->getHeight() / 2, 0);
 		if($ev->isCancelled()){
@@ -2053,7 +2054,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 		$ev->call();
 		if(!$ev->isCancelled()){
 			$this->broadcastSound(new EntityAttackNoDamageSound());
-			$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+			$this->swingArm();
 		}
 	}
 
@@ -2175,7 +2176,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 	 * Drops an item on the ground in front of the player.
 	 */
 	public function dropItem(Item $item) : void{
-		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+		$this->swingArm();
 		$this->getWorld()->dropItem($this->location->add(0, 1.3, 0), $item, $this->getDirectionVector()->multiply(0.4), 40);
 	}
 
@@ -2659,6 +2660,18 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer{
 			$targets[] = $this;
 		}
 		parent::sendData($targets, $data);
+	}
+
+	/**
+	 * Shows an arm swing to viewers. Multiple input paths may describe the same
+	 * swing, so broadcast at most one visual per server tick.
+	 */
+	public function swingArm() : void{
+		$currentTick = $this->server->getTick();
+		if($this->lastArmSwingTick !== $currentTick){
+			$this->lastArmSwingTick = $currentTick;
+			$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+		}
 	}
 
 	public function broadcastAnimation(Animation $animation, ?array $targets = null) : void{

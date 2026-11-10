@@ -55,8 +55,25 @@ final class DeprecatedCraftingResultsStackRequestAction extends ItemStackRequest
 
 	public static function read(PacketSerializer $in) : self{
 		$results = [];
-		for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
-			$results[] = $in->getItemStackWithoutStackId(false);
+		if($in->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+			//26.60: StackRequestItem por identificador; a acao e so informativa, entao le e descarta
+			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+				$variant = $in->getUnsignedVarInt();
+				$in->getByte(); //legacy variant
+				if($variant === 1){
+					$in->getString(); //identifier
+					$in->getVarInt(); //meta
+				}elseif($variant !== 0){
+					throw new \pocketmine\network\mcpe\protocol\PacketDecodeException("Unknown stack request item descriptor $variant");
+				}
+				$in->getLShort(); //count
+				$in->getUnsignedVarInt(); //block runtime id
+				$in->getString(); //user data
+			}
+		}else{
+			for($i = 0, $len = $in->getUnsignedVarInt(); $i < $len; ++$i){
+				$results[] = $in->getItemStackWithoutStackId(false);
+			}
 		}
 		$iterations = $in->getByte();
 		return new self($results, $iterations);

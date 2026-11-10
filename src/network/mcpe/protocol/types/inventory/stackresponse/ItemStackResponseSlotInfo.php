@@ -59,7 +59,7 @@ final class ItemStackResponseSlotInfo{
 		$hotbarSlot = $in->getByte();
 		$count = $in->getByte();
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-			$itemStackId = $in->readDoubleOptional($in->readServerItemStackId(...));
+			$itemStackId = $in->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62 ? $in->readOptional($in->readServerItemStackId(...)) : $in->readDoubleOptional($in->readServerItemStackId(...));
 		}else{
 			$itemStackId = $in->readServerItemStackId();
 		}
@@ -82,7 +82,11 @@ final class ItemStackResponseSlotInfo{
 		$out->putByte($this->hotbarSlot);
 		$out->putByte($this->count);
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-			$out->writeDoubleOptional($this->itemStackId, $out->writeServerItemStackId(...));
+			if($out->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+				$out->writeOptional($this->itemStackId, $out->writeServerItemStackId(...));
+			}else{
+				$out->writeDoubleOptional($this->itemStackId, $out->writeServerItemStackId(...));
+			}
 		}else{
 			$out->writeServerItemStackId($this->itemStackId ?? 0);
 		}

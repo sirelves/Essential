@@ -96,6 +96,17 @@ final class ItemStackRequest{
 			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
 				$typeId = ItemStackRequestActionType::fromModernTypeId($in->getUnsignedVarInt());
 				$in->getByte(); // legacy action type ID, retained by the client for compatibility
+				if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+					if($typeId === 18){
+						//26.60: CraftReserved (string reservedId + u8 numberOfCrafts), sem equivalente aqui: le e descarta
+						$in->getString();
+						$in->getByte();
+						continue;
+					}
+					if($typeId > 18){
+						$typeId--; //NonImplementedDeprecated 19->18, CraftResultsDeprecated 20->19
+					}
+				}
 			}else{
 				$typeId = $in->getByte();
 				if($typeId >= ItemStackRequestActionType::PLACE_INTO_BUNDLE && $in->getProtocolId() < ProtocolInfo::PROTOCOL_1_18_10){
@@ -123,7 +134,11 @@ final class ItemStackRequest{
 		foreach($this->actions as $action){
 			$typeId = $action->getTypeId();
 			if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-				$out->putUnsignedVarInt(ItemStackRequestActionType::toModernTypeId($typeId));
+				$modern = ItemStackRequestActionType::toModernTypeId($typeId);
+				if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 && $typeId >= ItemStackRequestActionType::CRAFTING_NON_IMPLEMENTED_DEPRECATED_ASK_TY_LAING){
+					$modern++; //26.60 inseriu CraftReserved antes
+				}
+				$out->putUnsignedVarInt($modern);
 				$out->putByte($typeId);
 			}elseif($typeId >= ItemStackRequestActionType::PLACE_INTO_BUNDLE && $out->getProtocolId() < ProtocolInfo::PROTOCOL_1_18_10){
 				$typeId -= ItemStackRequestActionType::LAB_TABLE_COMBINE - ItemStackRequestActionType::PLACE_INTO_BUNDLE;

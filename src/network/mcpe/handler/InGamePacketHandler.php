@@ -283,9 +283,11 @@ class InGamePacketHandler extends PacketHandler{
 			if($packet->hasFlag(PlayerAuthInputFlags::START_JUMPING)){
 				$this->player->jump();
 			}
-			if($packet->hasFlag(PlayerAuthInputFlags::MISSED_SWING)){
-				$this->player->missSwing();
-			}
+		}
+		// Unlike persistent movement state, this flag describes an action on each
+		// input packet, including successive packets with otherwise identical flags.
+		if($packet->hasFlag(PlayerAuthInputFlags::MISSED_SWING)){
+			$this->player->missSwing();
 		}
 
 		if(!$this->forceMoveSync && $hasMoved){
@@ -324,7 +326,8 @@ class InGamePacketHandler extends PacketHandler{
 
 			$this->inventoryManager->setCurrentItemStackRequestId($useItemTransaction->getRequestId());
 			$this->inventoryManager->addRawPredictedSlotChanges($useItemTransaction->getTransactionData()->getActions());
-			if($this->session->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_30){
+			if($this->session->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_30 && $this->session->getProtocolId() < ProtocolInfo::PROTOCOL_1_26_62){
+				//2225 (1.26.60+) voltou a mandar os dados de uso no ItemInteraction: cai no handleUseItemTransaction
 				//1.26.30+ no longer carries use-item data (action type, item in hand, etc.) in
 				//PlayerAuthInputPacket's item interaction - it only carries predicted inventory slot
 				//changes. The actual use action now arrives via a standalone InventoryTransactionPacket.
@@ -948,7 +951,14 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	public function handleAnimate(AnimatePacket $packet) : bool{
-		return true; //Not used
+		// Older clients report arm swings here instead of MISSED_SWING input.
+		// Only relay the authenticated actor's arm animation, not arbitrary actions.
+		if($packet->action === AnimatePacket::ACTION_SWING_ARM
+			&& $packet->actorRuntimeId === $this->player->getId()
+			&& $this->player->isAlive() && !$this->player->isSpectator()){
+			$this->player->swingArm();
+		}
+		return true;
 	}
 
 	public function handleContainerClose(ContainerClosePacket $packet) : bool{

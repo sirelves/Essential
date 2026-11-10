@@ -94,6 +94,17 @@ class PreSpawnPacketHandler extends PacketHandler{
 			}
 			$levelSettings->experiments = new Experiments([], false);
 
+			if($protocolId >= ProtocolInfo::PROTOCOL_1_26_62){ //1.26.60 exige esses 2 antes do StartGame, senão 'Dados de estrutura ausentes'
+				$this->session->sendDataPacket(\pocketmine\network\mcpe\protocol\JigsawStructureDataPacket::create(new CacheableNbt(
+					CompoundTag::create()
+						->setTag("processors", new \pocketmine\nbt\tag\ListTag([], \pocketmine\nbt\NBT::TAG_Compound))
+						->setTag("template_pools", new \pocketmine\nbt\tag\ListTag([], \pocketmine\nbt\NBT::TAG_Compound))
+						->setTag("jigsaws", new \pocketmine\nbt\tag\ListTag([], \pocketmine\nbt\NBT::TAG_Compound))
+						->setTag("structure_sets", new \pocketmine\nbt\tag\ListTag([], \pocketmine\nbt\NBT::TAG_Compound))
+				)));
+				$this->session->sendDataPacket(\pocketmine\network\mcpe\protocol\VoxelShapesPacket::create([], []));
+			}
+
 			$this->session->sendDataPacket(StartGamePacket::create(
 				$this->player->getId(),
 				$this->player->getId(),

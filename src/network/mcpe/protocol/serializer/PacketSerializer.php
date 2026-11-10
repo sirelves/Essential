@@ -453,7 +453,7 @@ class PacketSerializer extends BinaryStream{
 
 		$this->putString($skin->getSkinId());
 
-		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210){
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_16_210 && $this->getProtocolId() < ProtocolInfo::PROTOCOL_1_26_62){
 			$this->putString($skin->getPlayFabId());
 		}
 
@@ -1475,6 +1475,9 @@ class PacketSerializer extends BinaryStream{
 
 	/** 1.26.40 wraps some optionals in a mandatory-present outer optional. */
 	public function readDummyOptional() : void{
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			return;
+		}
 		$dummy = $this->getByte();
 		if($dummy !== 1){
 			throw new PacketDecodeException("Dummy optional first byte should be 1, got $dummy");
@@ -1482,6 +1485,9 @@ class PacketSerializer extends BinaryStream{
 	}
 
 	public function writeDummyOptional() : void{
+		if($this->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			return;
+		}
 		$this->putByte(1);
 	}
 

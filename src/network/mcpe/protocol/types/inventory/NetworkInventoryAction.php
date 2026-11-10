@@ -89,7 +89,10 @@ class NetworkInventoryAction{
 		$this->sourceType = $packet->getUnsignedVarInt();
 
 		if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_30){
-			if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
+			if($packet->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+				$this->windowId = $packet->readOptional(fn() => Binary::signByte($packet->getByte()));
+				$this->sourceFlags = $packet->readOptional(fn() => $packet->getUnsignedVarInt());
+			}elseif($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
 				$this->windowId = $packet->readOptional(fn() => $packet->readOptional(fn() => Binary::signByte($packet->getByte())));
 				$this->sourceFlags = $packet->readOptional(fn() => $packet->readOptional(fn() => $packet->getUnsignedVarInt()));
 			}else{
@@ -142,8 +145,13 @@ class NetworkInventoryAction{
 		$this->sourceType = $packet->getUnsignedVarInt();
 
 		if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-			$this->windowId = $packet->readOptional(fn() => $packet->readOptional(fn() => Binary::signByte($packet->getByte())));
-			$this->sourceFlags = $packet->readOptional(fn() => $packet->readOptional(fn() => $packet->getUnsignedVarInt()));
+			if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+				$this->windowId = $packet->readOptional(fn() => Binary::signByte($packet->getByte()));
+				$this->sourceFlags = $packet->readOptional(fn() => $packet->getUnsignedVarInt());
+			}else{
+				$this->windowId = $packet->readOptional(fn() => $packet->readOptional(fn() => Binary::signByte($packet->getByte())));
+				$this->sourceFlags = $packet->readOptional(fn() => $packet->readOptional(fn() => $packet->getUnsignedVarInt()));
+			}
 			$this->inventorySlot = $packet->getUnsignedVarInt();
 			$this->oldItem = $packet->getNetworkItemStackDescriptor();
 			$this->newItem = $packet->getNetworkItemStackDescriptor();
@@ -181,8 +189,13 @@ class NetworkInventoryAction{
 		$packet->putUnsignedVarInt($this->sourceType);
 
 		if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-			$packet->writeOptional($this->windowId, fn(int $windowId) => $packet->writeOptional($windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v))));
-			$packet->writeOptional($this->sourceFlags, fn(int $sourceFlags) => $packet->writeOptional($sourceFlags, fn(int $v) => $packet->putUnsignedVarInt($v)));
+			if($packet->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+				$packet->writeOptional($this->windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v)));
+				$packet->writeOptional($this->sourceFlags, fn(int $v) => $packet->putUnsignedVarInt($v));
+			}else{
+				$packet->writeOptional($this->windowId, fn(int $windowId) => $packet->writeOptional($windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v))));
+				$packet->writeOptional($this->sourceFlags, fn(int $sourceFlags) => $packet->writeOptional($sourceFlags, fn(int $v) => $packet->putUnsignedVarInt($v)));
+			}
 			$packet->putUnsignedVarInt($this->inventorySlot);
 			$packet->putNetworkItemStackDescriptor($this->oldItem);
 			$packet->putNetworkItemStackDescriptor($this->newItem);
@@ -219,8 +232,13 @@ class NetworkInventoryAction{
 
 		if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_30){
 			if($packet->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-				$packet->writeOptional($this->windowId, fn(int $windowId) => $packet->writeOptional($windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v))));
-				$packet->writeOptional($this->sourceFlags, fn(int $sourceFlags) => $packet->writeOptional($sourceFlags, fn(int $v) => $packet->putUnsignedVarInt($v)));
+				if($packet->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+					$packet->writeOptional($this->windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v)));
+					$packet->writeOptional($this->sourceFlags, fn(int $v) => $packet->putUnsignedVarInt($v));
+				}else{
+					$packet->writeOptional($this->windowId, fn(int $windowId) => $packet->writeOptional($windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v))));
+					$packet->writeOptional($this->sourceFlags, fn(int $sourceFlags) => $packet->writeOptional($sourceFlags, fn(int $v) => $packet->putUnsignedVarInt($v)));
+				}
 			}else{
 				$packet->writeDummyOptional();
 				$packet->writeOptional($this->windowId, fn(int $v) => $packet->putByte(Binary::unsignByte($v)));

@@ -43,6 +43,7 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 	public int $actorRuntimeId;
 	public float $data = 0.0;
 	public ?string $swingSource = null;
+	public int $hand = 0;
 
 	public static function create(int $actorRuntimeId, int $actionId, float $data = 0.0, ?string $swingSource = null) : self{
 		$result = new self();
@@ -75,6 +76,9 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_21_130){
 			$this->swingSource = $in->readOptional($in->getString(...));
 		}
+		if($in->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+			$this->hand = $in->getByte();
+		}
 	}
 
 	protected function encodePayload(PacketSerializer $out) : void{
@@ -91,6 +95,9 @@ class AnimatePacket extends DataPacket implements ClientboundPacket, Serverbound
 
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_21_130){
 			$out->writeOptional($this->swingSource, $out->putString(...));
+		}
+		if($out->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+			$out->putByte($this->hand);
 		}
 	}
 

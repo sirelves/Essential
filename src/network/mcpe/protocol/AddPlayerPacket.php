@@ -218,6 +218,9 @@ class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 			$out->putEntityLink($link);
 		}
 
+		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$out->putBool(false); //PassengerOfBlock (1.26.60+)
+		}
 		$out->putString($this->deviceId);
 		if($out->getProtocolId() >= ProtocolInfo::PROTOCOL_1_13_0){
 			$out->putLInt($this->buildPlatform);

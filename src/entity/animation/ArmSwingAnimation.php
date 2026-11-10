@@ -26,8 +26,10 @@ declare(strict_types=1);
 
 namespace pocketmine\entity\animation;
 
+use pocketmine\entity\Human;
 use pocketmine\entity\Living;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
+use pocketmine\network\mcpe\protocol\AnimatePacket;
 use pocketmine\network\mcpe\protocol\types\ActorEvent;
 
 final class ArmSwingAnimation implements Animation{
@@ -36,6 +38,9 @@ final class ArmSwingAnimation implements Animation{
 	public function __construct(private Living $entity){}
 
 	public function encode() : array{
+		if($this->entity instanceof Human){
+			return [AnimatePacket::create($this->entity->getId(), AnimatePacket::ACTION_SWING_ARM)];
+		}
 		return [
 			ActorEventPacket::create($this->entity->getId(), ActorEvent::ARM_SWING, 0)
 		];

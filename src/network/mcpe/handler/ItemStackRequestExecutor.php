@@ -247,7 +247,7 @@ class ItemStackRequestExecutor{
 			throw new ItemStackRequestProcessException("Cannot craft a recipe more than 256 times");
 		}
 		$craftingManager = $this->player->getServer()->getCraftingManager();
-		$recipe = $craftingManager->getCraftingRecipeFromIndex($recipeId);
+		$recipe = $craftingManager->getCraftingRecipeFromIndex($recipeId - \pocketmine\network\mcpe\cache\CraftingDataCache::RECIPE_ID_OFFSET);
 		if($recipe === null){
 			throw new ItemStackRequestProcessException("No such crafting recipe index: $recipeId");
 		}

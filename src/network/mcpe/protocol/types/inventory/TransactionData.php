@@ -89,6 +89,9 @@ abstract class TransactionData{
 			for($i = 0; $i < $actionCount; ++$i){
 				$this->actions[] = (new NetworkInventoryAction())->readAuthInput($stream);
 			}
+			if($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+				$this->decodeData($stream);
+			}
 			return;
 		}
 

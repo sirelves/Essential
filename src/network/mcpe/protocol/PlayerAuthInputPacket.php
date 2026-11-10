@@ -344,7 +344,7 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		$this->headYaw = $in->getLFloat();
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
 			$this->inputFlags = 0;
-			if($in->getBool()){
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool()){
 				for($i = 0, $count = $in->getUnsignedVarInt(); $i < $count; ++$i){
 					$flag = $in->getVarInt();
 					if($flag < 0 || $flag >= PlayerAuthInputFlags::NUMBER_OF_FLAGS || isset($this->sparseInputFlags[$flag])){
@@ -376,13 +376,13 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 		}
 
 		if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_40){
-			if($in->getBool()){
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool()){
 				$this->itemInteractionData = $in->readOptional(fn() => ItemInteractionData::read($in));
 			}
-			if($in->getBool()){
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool()){
 				$this->itemStackRequest = $in->readOptional(fn() => ItemStackRequest::read($in));
 			}
-			if($in->getBool()){
+			if($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool()){
 				$this->blockActions = $in->readOptional(function() use ($in) : array{
 					$result = [];
 					for($i = 0, $count = $in->getUnsignedVarInt(); $i < $count; ++$i){
@@ -395,8 +395,8 @@ class PlayerAuthInputPacket extends DataPacket implements ServerboundPacket{
 					return $result;
 				});
 			}
-			$vehicleRotation = $in->getBool() ? $in->readOptional(fn() => $in->getVector2()) : null;
-			$vehicleActorUniqueId = $in->getBool() ? $in->readOptional(fn() => $in->getActorUniqueId()) : null;
+			$vehicleRotation = ($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool()) ? $in->readOptional(fn() => $in->getVector2()) : null;
+			$vehicleActorUniqueId = ($in->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62 || $in->getBool()) ? $in->readOptional(fn() => $in->getActorUniqueId()) : null;
 			if(($vehicleRotation === null) !== ($vehicleActorUniqueId === null)){
 				throw new PacketDecodeException("Vehicle rotation and actor unique ID must both be present or absent");
 			}

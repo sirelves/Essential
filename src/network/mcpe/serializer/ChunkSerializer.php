@@ -132,7 +132,8 @@ final class ChunkSerializer{
 				$chunk->getSubChunk($y),
 				$typeConverter->getBlockTranslator(),
 				$subChunkStream,
-				false
+				false,
+				$y
 			);
 			$subChunks[] = $subChunkStream->getBuffer();
 		}
@@ -301,11 +302,16 @@ final class ChunkSerializer{
 		}
 	}
 
-	public static function serializeSubChunk(SubChunk $subChunk, BlockTranslator $blockTranslator, PacketSerializer $stream, bool $persistentBlockStates) : void{
+	public static function serializeSubChunk(SubChunk $subChunk, BlockTranslator $blockTranslator, PacketSerializer $stream, bool $persistentBlockStates, int $subChunkY = 0) : void{
 		$layers = $subChunk->getBlockLayers();
-		$stream->putByte(8); //version
-
-		$stream->putByte(count($layers));
+		if($stream->getProtocolId() >= ProtocolInfo::PROTOCOL_1_26_62){
+			$stream->putByte(9); //subchunk version 9 (1.26.60+)
+			$stream->putByte(count($layers));
+			$stream->putByte($subChunkY & 0xff); //subchunk Y index
+		}else{
+			$stream->putByte(8); //version
+			$stream->putByte(count($layers));
+		}
 
 		$blockStateDictionary = $blockTranslator->getBlockStateDictionary();
 

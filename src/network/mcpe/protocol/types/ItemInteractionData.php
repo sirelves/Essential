@@ -59,7 +59,7 @@ final class ItemInteractionData{
 	public static function read(PacketSerializer $in) : self{
 		$requestId = $in->getVarInt();
 		$requestChangedSlots = [];
-		if($requestId !== 0){
+		if(($in->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62) ? $in->getBool() : ($requestId !== 0)){
 			$len = $in->getUnsignedVarInt();
 			for($i = 0; $i < $len; ++$i){
 				$requestChangedSlots[] = InventoryTransactionChangedSlotsHack::read($in);

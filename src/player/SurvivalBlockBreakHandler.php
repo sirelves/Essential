@@ -27,7 +27,6 @@ declare(strict_types=1);
 namespace pocketmine\player;
 
 use pocketmine\block\Block;
-use pocketmine\entity\animation\ArmSwingAnimation;
 use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\math\Facing;
@@ -116,7 +115,7 @@ final class SurvivalBlockBreakHandler{
 		if(($this->fxTicker++ % $this->fxTickInterval) === 0 && $this->breakProgress < 1){
 			$this->player->getWorld()->addParticle($this->blockPos, new BlockPunchParticle($this->block, $this->targetedFace));
 			$this->player->getWorld()->addSound($this->blockPos, new BlockPunchSound($this->block));
-			$this->player->broadcastAnimation(new ArmSwingAnimation($this->player), $this->player->getViewers());
+			$this->player->swingArm();
 		}
 
 		return $this->breakProgress < 1;

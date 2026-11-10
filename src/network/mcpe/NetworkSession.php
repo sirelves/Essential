@@ -511,6 +511,9 @@ class NetworkSession{
 					$packet = $this->packetPool->getPacket($buffer);
 					if($packet === null){
 						$this->logger->debug("Unknown packet: " . base64_encode($buffer));
+						if($this->getProtocolId() >= \pocketmine\network\mcpe\protocol\ProtocolInfo::PROTOCOL_1_26_62){
+							continue; //26.60 tem pacotes novos (ex.: ServerboundCursorItemDrag 0x166): ignorar, como o BDS
+						}
 						throw new PacketHandlingException("Unknown packet received");
 					}
 					$name = $packet->getName();
@@ -1071,7 +1074,7 @@ class NetworkSession{
 			}
 		}
 
-		if(EncryptionContext::$ENABLED){
+		if(EncryptionContext::$ENABLED && $this->ip !== '127.0.0.1'){
 			$this->server->getAsyncPool()->submitTask(new PrepareEncryptionTask($clientPubKey, function(string $encryptionKey, string $handshakeJwt) : void{
 				if(!$this->connected){
 					return;
