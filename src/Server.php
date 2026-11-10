@@ -64,6 +64,7 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\PacketBroadcaster;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
+use pocketmine\network\mcpe\nethernet\NetherNetTransport;
 use pocketmine\network\mcpe\raklib\RakLibInterface;
 use pocketmine\network\mcpe\StandardEntityEventBroadcaster;
 use pocketmine\network\mcpe\StandardPacketBroadcaster;
@@ -131,18 +132,21 @@ use pocketmine\YmlServerProperties as Yml;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Filesystem\Path;
 use function array_fill;
+use function array_map;
 use function array_sum;
 use function chr;
 use function cli_set_process_title;
 use function copy;
 use function count;
 use function date;
+use function explode;
 use function fclose;
 use function file_exists;
 use function file_put_contents;
 use function fopen;
 use function get_class;
 use function gettype;
+use function in_array;
 use function ini_set;
 use function is_array;
 use function is_dir;
@@ -1264,6 +1268,25 @@ class Server{
 		return true;
 	}
 
+	/**
+	 * Starts the NetherNet (WebRTC) transport used by Bedrock 26.60+ clients when transport.name lists it.
+	 * RakNet keeps serving every other version; a NetherNet failure is logged and does not stop the server.
+	 */
+	private function startupPrepareNetherNet(PacketBroadcaster $packetBroadcaster, EntityEventBroadcaster $entityEventBroadcaster, TypeConverter $typeConverter) : void{
+		$transports = array_map(fn(string $t) => strtolower(trim($t)), explode(",", $this->configGroup->getPropertyString(Yml::TRANSPORT_NAME, "raknet")));
+		if(!in_array(NetherNetTransport::NAME, $transports, true)){
+			return;
+		}
+		try{
+			foreach((new NetherNetTransport($this))->createInterfaces($packetBroadcaster, $entityEventBroadcaster, $typeConverter) as $interface){
+				$this->network->registerInterface($interface);
+				$this->logger->info("NetherNet (WebRTC) transport started for Bedrock 26.60+ clients");
+			}
+		}catch(NetworkInterfaceStartException $e){
+			$this->logger->error("NetherNet transport failed to start, continuing with RakNet only: " . $e->getMessage());
+		}
+	}
+
 	private function startupPrepareNetworkInterfaces() : bool{
 		$useQuery = $this->configGroup->getConfigBool(ServerProperties::ENABLE_QUERY, true);
 
@@ -1280,6 +1303,8 @@ class Server{
 		){
 			return false;
 		}
+
+		$this->startupPrepareNetherNet($packetBroadcaster, $entityEventBroadcaster, $typeConverter);
 
 		if($useQuery){
 			$this->network->registerRawPacketHandler(new QueryHandler($this));
