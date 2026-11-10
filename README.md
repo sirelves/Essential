@@ -9,6 +9,10 @@
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-LGPL--3.0-blue"></a>
 </p>
 
+> **This is a modified version of Essential (branch `nethernet-1.26.62`)** with Minecraft: Bedrock Edition
+> **1.26.60 / 1.26.62 (protocol 2225)** support and a **native NetherNet (WebRTC) transport** for 26.60+ clients.
+> See [NETHERNET.md](NETHERNET.md). Not affiliated with BakuTeam; report issues here, not upstream.
+
 ## What is this?
 
 Essential is maintained by **BakuTeam**. This repository is an official GitHub fork of [NetherGamesMC/PocketMine-MP](https://github.com/NetherGamesMC/PocketMine-MP), which in turn is a fork of [pmmp/PocketMine-MP](https://github.com/pmmp/PocketMine-MP).
